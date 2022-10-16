@@ -10,7 +10,6 @@ import {
 } from "@heroicons/react/24/solid";
 import { IDataProps } from "../../pages";
 import qs from "qs";
-import { debounce } from "../../utils";
 import { CustomModal } from "../CustomModal/CustomModal";
 
 interface IColumns {
@@ -41,6 +40,7 @@ interface IFilter {
 const CustomTable = ({ columns, data }: ITableProps) => {
   const { items: rows, meta, links } = data;
   const [searchValue, setSetSearchValue] = useState("");
+  const [cryptoCode, setCryptoCode] = useState("");
   const [filter, setFilter] = useState<IFilter>({ page: 1, limit: 10 });
   const router = useRouter();
 
@@ -49,17 +49,15 @@ const CustomTable = ({ columns, data }: ITableProps) => {
     setIsOpen(false);
   }
 
-  function openModal() {
+  function openModal(code: string) {
+    setCryptoCode(code);
     setIsOpen(true);
   }
 
-  const handleSearchDebounce = (query: string) => {
-    router.push(`/?search=heelo`);
-  };
   const handleSearch = (event: any) => {
     const { value } = event.target;
     setSetSearchValue(value);
-    debounce(handleSearchDebounce, 500);
+    router.push(`/?search=${value}`);
   };
 
   const handlePaginationChange = (pageNumber: number) => {
@@ -130,7 +128,7 @@ const CustomTable = ({ columns, data }: ITableProps) => {
               <tr key={row.id} className="bg-white border-b  hover:bg-gray-50 ">
                 <td className="py-4 px-6">
                   <HeartIcon
-                    onClick={openModal}
+                    onClick={() => openModal(row.code)}
                     className="w-5 h-5 text-gray-500 dark:text-gray-400 cursor-pointer"
                   />
                 </td>
@@ -190,7 +188,11 @@ const CustomTable = ({ columns, data }: ITableProps) => {
           </li>
         </ul>
       </nav>
-      <CustomModal isOpen={isOpen} handleCloseModal={closeModal} />
+      <CustomModal
+        isOpen={isOpen}
+        handleCloseModal={closeModal}
+        cryptoCode={cryptoCode}
+      />
     </div>
   );
 };

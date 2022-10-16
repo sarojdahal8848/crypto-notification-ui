@@ -1,12 +1,39 @@
 import { Dialog, Transition } from "@headlessui/react";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 
 interface IModalProps {
   handleCloseModal: () => void;
   isOpen: boolean;
+  cryptoCode: string;
 }
 
-export const CustomModal = ({ handleCloseModal, isOpen }: IModalProps) => {
+interface IWatchListData {
+  code: string;
+  max_price: string;
+  min_price: string;
+}
+
+export const CustomModal = ({
+  handleCloseModal,
+  isOpen,
+  cryptoCode,
+}: IModalProps) => {
+  const [data, setData] = useState<IWatchListData>({
+    code: "",
+    min_price: "",
+    max_price: "",
+  });
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    console.log(data);
+  };
+
+  const handleChange = (e: any) => {
+    const { name, value } = e.target;
+    setData(() => ({ ...data, [name]: value, code: cryptoCode }));
+  };
+
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={handleCloseModal}>
@@ -38,23 +65,42 @@ export const CustomModal = ({ handleCloseModal, isOpen }: IModalProps) => {
                   as="h3"
                   className="text-lg font-medium leading-6 text-gray-900"
                 >
-                  Payment successful
+                  Add to Watchlist
                 </Dialog.Title>
                 <div className="mt-2">
-                  <p className="text-sm text-gray-500">
-                    Your payment has been successfully submitted. We’ve sent you
-                    an email with all of the details of your order.
-                  </p>
-                </div>
-
-                <div className="mt-4">
-                  <button
-                    type="button"
-                    className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                    onClick={handleCloseModal}
-                  >
-                    Got it, thanks!
-                  </button>
+                  <form onSubmit={handleSubmit}>
+                    <input
+                      type="text"
+                      value={cryptoCode}
+                      name="code"
+                      className="input-field disabled"
+                      readOnly
+                    />
+                    <input
+                      type="number"
+                      placeholder="Minimum Price"
+                      className="input-field"
+                      name="min_price"
+                      value={data.min_price}
+                      onChange={handleChange}
+                      required={true}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Maximum Price"
+                      className="input-field"
+                      name="max_price"
+                      value={data.max_price}
+                      onChange={handleChange}
+                      required={true}
+                    />
+                    <button
+                      type="submit"
+                      className="w-full py-2 px-4 border-[1px] rounded-lg bg-slate-400 hover:bg-slate-300"
+                    >
+                      Add
+                    </button>
+                  </form>
                 </div>
               </Dialog.Panel>
             </Transition.Child>
