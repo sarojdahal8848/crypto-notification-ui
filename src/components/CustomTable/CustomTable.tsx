@@ -10,7 +10,11 @@ import {
 } from "@heroicons/react/24/solid";
 import { IDataProps } from "../../pages";
 import qs from "qs";
-import { CustomModal } from "../CustomModal/CustomModal";
+import { CustomModal, IWatchListData } from "../CustomModal/CustomModal";
+import { useMutation } from "react-query";
+import { toast } from "react-toastify";
+import { toastMsg } from "../../utils";
+import Loader from "../Loader/Loader";
 
 interface IColumns {
   access_name: string;
@@ -30,6 +34,9 @@ interface ITableRows {
 interface ITableProps {
   columns: IColumns[];
   data: IDataProps;
+  watchListData?: IWatchListData[];
+  favIcon?: boolean;
+  searchPath: string;
 }
 
 interface IFilter {
@@ -37,12 +44,44 @@ interface IFilter {
   limit?: number;
 }
 
-const CustomTable = ({ columns, data }: ITableProps) => {
+const submitFormHandler = async (formData: IWatchListData) => {
+  const res = await fetch("http://localhost:5000/watchlist", {
+    method: "POST",
+    body: JSON.stringify(formData),
+    headers: {
+      "Content-type": "application/json; charset=UTF-8",
+    },
+  });
+  const result = res.json();
+  return result;
+};
+
+const CustomTable = ({
+  columns,
+  data,
+  watchListData,
+  favIcon = false,
+  searchPath,
+}: ITableProps) => {
   const { items: rows, meta, links } = data;
+
+  const watchListCode = watchListData?.length
+    ? watchListData?.map((val) => val.code)
+    : [];
   const [searchValue, setSetSearchValue] = useState("");
   const [cryptoCode, setCryptoCode] = useState("");
   const [filter, setFilter] = useState<IFilter>({ page: 1, limit: 10 });
   const router = useRouter();
+  const { mutate, isLoading } = useMutation(submitFormHandler, {
+    onSuccess: () => {
+      router.push("/watchlist");
+      toastMsg("success", "Added to Watchlist successfully");
+    },
+
+    onError(error: string) {
+      toastMsg("error", error);
+    },
+  });
 
   let [isOpen, setIsOpen] = useState(false);
   function closeModal() {
@@ -57,19 +96,19 @@ const CustomTable = ({ columns, data }: ITableProps) => {
   const handleSearch = (event: any) => {
     const { value } = event.target;
     setSetSearchValue(value);
-    router.push(`/?search=${value}`);
+    router.push(`${searchPath}?search=${value}`);
   };
 
   const handlePaginationChange = (pageNumber: number) => {
     const queryString = qs.stringify({ ...filter, page: pageNumber });
-    router.push(`/?${queryString}`);
+    router.push(`${searchPath}?${queryString}`);
   };
 
   const handlefilterChange = (event: any) => {
     const { name, value } = event.target;
     setFilter({ ...filter, [name]: value });
     const queryString = qs.stringify({ ...filter, [name]: value });
-    router.push(`/?${queryString}`);
+    router.push(`${searchPath}?${queryString}`);
   };
 
   const isNextDisabled = (): boolean => {
@@ -78,6 +117,19 @@ const CustomTable = ({ columns, data }: ITableProps) => {
   const isPrevDisabled = (): boolean => {
     return meta.currentPage <= 1;
   };
+
+  const handleFormSubmit = async (watchListData: IWatchListData) => {
+    try {
+      await mutate(watchListData);
+    } catch (error) {
+      console.log(error);
+    }
+    closeModal();
+  };
+
+  if (isLoading) {
+    return <Loader />;
+  }
 
   return (
     <div className="overflow-x-auto relative">
@@ -112,7 +164,7 @@ const CustomTable = ({ columns, data }: ITableProps) => {
       <table className="w-full text-sm text-left text-gray-500 ">
         <thead className="text-xs text-gray-700 uppercase bg-gray-100">
           <tr>
-            <th></th>
+            {favIcon && <th></th>}
             {columns.map((column) => {
               return (
                 <th scope="col" className="py-3 px-6" key={column.access_name}>
@@ -126,12 +178,19 @@ const CustomTable = ({ columns, data }: ITableProps) => {
           {rows.map((row) => {
             return (
               <tr key={row.id} className="bg-white border-b  hover:bg-gray-50 ">
-                <td className="py-4 px-6">
-                  <HeartIcon
-                    onClick={() => openModal(row.code)}
-                    className="w-5 h-5 text-gray-500 dark:text-gray-400 cursor-pointer"
-                  />
-                </td>
+                {favIcon && (
+                  <td className="py-4 px-6">
+                    <HeartIcon
+                      onClick={() => openModal(row.code)}
+                      className={`w-5 h-5 ${
+                        watchListCode?.includes(row.code)
+                          ? "text-red-600"
+                          : "text-gray-500"
+                      }  cursor-pointer`}
+                    />
+                  </td>
+                )}
+
                 {columns.map((column) => {
                   if (column.access_name === "image") {
                     return (
@@ -192,6 +251,7 @@ const CustomTable = ({ columns, data }: ITableProps) => {
         isOpen={isOpen}
         handleCloseModal={closeModal}
         cryptoCode={cryptoCode}
+        handleFormSubmit={handleFormSubmit}
       />
     </div>
   );

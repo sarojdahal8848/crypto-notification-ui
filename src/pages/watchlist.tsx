@@ -8,12 +8,9 @@ import { useEffect, useState } from "react";
 import { IWatchListData } from "../components/CustomModal/CustomModal";
 
 const columns = [
-  { access_name: "image", label: "Image" },
-  { access_name: "name", label: "Name" },
   { access_name: "code", label: "Code" },
-  { access_name: "price", label: "Price ($)" },
-  { access_name: "market_cap", label: "Market Cap (Billion)" },
-  { access_name: "_24h", label: "Change" },
+  { access_name: "min_price", label: "Min Price($)" },
+  { access_name: "max_price", label: "Max Price($)" },
 ];
 
 interface ICryptoData {
@@ -47,9 +44,8 @@ export interface IDataProps {
   links: IDataLinks;
 }
 
-interface IHomeProps {
+interface IWatchListProps {
   data: IDataProps;
-  watchlistData: IWatchListData[];
 }
 
 interface IQueryOptions {
@@ -58,23 +54,17 @@ interface IQueryOptions {
   limit?: number;
 }
 
-const Home: NextPage<IHomeProps> = ({ data, watchlistData }) => {
+const WatchList: NextPage<IWatchListProps> = ({ data }) => {
   return (
     <Layout>
       <main className="flex justify-between items-center flex-col my-[100px] mx-6">
-        <CustomTable
-          columns={columns}
-          data={data}
-          watchListData={watchlistData}
-          favIcon={true}
-          searchPath="/"
-        />
+        <CustomTable columns={columns} data={data} searchPath="watchlist/" />
       </main>
     </Layout>
   );
 };
 
-export default Home;
+export default WatchList;
 
 export const getServerSideProps: GetServerSideProps = async ({ query }) => {
   const options: Partial<IQueryOptions> = {
@@ -85,16 +75,12 @@ export const getServerSideProps: GetServerSideProps = async ({ query }) => {
     options.search = query.search as string;
   }
   const queryString = qs.stringify(options);
-  const res = await fetch(`http://localhost:5000/crypto?${queryString}`);
+  const res = await fetch(`http://localhost:5000/watchlist?${queryString}`);
   const data = await res.json();
-
-  const resWatchlist = await fetch(`http://localhost:5000/watchlist/getAll`);
-  const watchlistData = await resWatchlist.json();
 
   return {
     props: {
       data,
-      watchlistData,
     },
   };
 };

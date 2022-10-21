@@ -1,13 +1,16 @@
 import { Dialog, Transition } from "@headlessui/react";
+
 import { Fragment, useEffect, useState } from "react";
+import { useMutation } from "react-query";
 
 interface IModalProps {
   handleCloseModal: () => void;
   isOpen: boolean;
   cryptoCode: string;
+  handleFormSubmit: (watchlistData: IWatchListData) => void;
 }
 
-interface IWatchListData {
+export interface IWatchListData {
   code: string;
   max_price: string;
   min_price: string;
@@ -17,8 +20,9 @@ export const CustomModal = ({
   handleCloseModal,
   isOpen,
   cryptoCode,
+  handleFormSubmit,
 }: IModalProps) => {
-  const [data, setData] = useState<IWatchListData>({
+  const [watchListData, setWatchListData] = useState<IWatchListData>({
     code: "",
     min_price: "",
     max_price: "",
@@ -26,12 +30,12 @@ export const CustomModal = ({
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    console.log(data);
+    handleFormSubmit(watchListData);
   };
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
-    setData(() => ({ ...data, [name]: value, code: cryptoCode }));
+    setWatchListData((prev) => ({ ...prev, [name]: value, code: cryptoCode }));
   };
 
   return (
@@ -66,22 +70,16 @@ export const CustomModal = ({
                   className="text-lg font-medium leading-6 text-gray-900"
                 >
                   Add to Watchlist
+                  <span>({cryptoCode})</span>
                 </Dialog.Title>
                 <div className="mt-2">
                   <form onSubmit={handleSubmit}>
-                    <input
-                      type="text"
-                      value={cryptoCode}
-                      name="code"
-                      className="input-field disabled"
-                      readOnly
-                    />
                     <input
                       type="number"
                       placeholder="Minimum Price"
                       className="input-field"
                       name="min_price"
-                      value={data.min_price}
+                      value={watchListData.min_price}
                       onChange={handleChange}
                       required={true}
                     />
@@ -90,7 +88,7 @@ export const CustomModal = ({
                       placeholder="Maximum Price"
                       className="input-field"
                       name="max_price"
-                      value={data.max_price}
+                      value={watchListData.max_price}
                       onChange={handleChange}
                       required={true}
                     />
