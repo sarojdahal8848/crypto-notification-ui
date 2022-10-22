@@ -1,11 +1,7 @@
 import type { GetServerSideProps, NextPage } from "next";
-import Head from "next/head";
+import qs from "qs";
 import CustomTable from "../components/CustomTable/CustomTable";
 import Layout from "../components/Layout/Layout";
-import Navbar from "../components/Navbar/Navbar";
-import qs from "qs";
-import { useEffect, useState } from "react";
-import { IWatchListData } from "../components/CustomModal/CustomModal";
 
 const columns = [
   { access_name: "code", label: "Code" },

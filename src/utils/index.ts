@@ -25,3 +25,5 @@ export const toastMsg = (type: string, msg: string) => {
     });
   }
 };
+
+export const BASE_URL = "http://localhost:5000";

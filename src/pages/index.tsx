@@ -1,11 +1,9 @@
 import type { GetServerSideProps, NextPage } from "next";
-import Head from "next/head";
+import qs from "qs";
+import { IWatchListData } from "../components/CustomModal/CustomModal";
 import CustomTable from "../components/CustomTable/CustomTable";
 import Layout from "../components/Layout/Layout";
-import Navbar from "../components/Navbar/Navbar";
-import qs from "qs";
-import { useEffect, useState } from "react";
-import { IWatchListData } from "../components/CustomModal/CustomModal";
+import { BASE_URL } from "../utils";
 
 const columns = [
   { access_name: "image", label: "Image" },
@@ -85,11 +83,12 @@ export const getServerSideProps: GetServerSideProps = async ({ query }) => {
     options.search = query.search as string;
   }
   const queryString = qs.stringify(options);
-  const res = await fetch(`http://localhost:5000/crypto?${queryString}`);
+  const res = await fetch(`${BASE_URL}/crypto?${queryString}`);
   const data = await res.json();
 
-  const resWatchlist = await fetch(`http://localhost:5000/watchlist/getAll`);
+  const resWatchlist = await fetch(`${BASE_URL}/watchlist/getAll`);
   const watchlistData = await resWatchlist.json();
+  console.log(resWatchlist);
 
   return {
     props: {
